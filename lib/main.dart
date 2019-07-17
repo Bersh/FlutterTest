@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:toast/toast.dart';
 
 import 'repo.dart';
 
@@ -14,15 +15,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
       home: MyHomePage(title: 'Flutter Demo Home Page'),
@@ -33,15 +25,6 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
   @override
@@ -49,37 +32,95 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  int currentPage = 1;
+  bool isLoading = false;
+  bool allLoaded = false;
+  final int perPage = 10;
+  List<Repo> repos = [];
+  ScrollController _scrollController = new ScrollController();
 
-  void _incrementCounter() {
+  void _getRepos() async {
+    if (isLoading) {
+      return;
+    }
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      isLoading = true;
+    });
+    var data = await http.get(
+        "https://api.github.com/users/JakeWharton/repos?page=$currentPage&per_page=$perPage");
+    var jsonData = json.decode(data.body);
+    List<Repo> tempList = [];
+    for (var repo in jsonData) {
+      tempList.add(Repo(
+          id: repo["id"], name: repo["name"], fullName: repo["full_name"]));
+    }
+
+    setState(() {
+      allLoaded = tempList.isEmpty;
+      currentPage++;
+      isLoading = false;
+      repos.addAll(tempList);
     });
   }
 
-  Future<List<Repo>> _getRepos() async {
-    var data = await http.get("https://api.github.com/users/JakeWharton/repos");
-    var jsonData = json.decode(data.body);
-    List<Repo> repos = [];
-    for (var repo in jsonData) {
-      repos.add(Repo(repo["id"], repo["name"]));
-    }
-    return repos;
+  @override
+  void initState() {
+    this._getRepos();
+    super.initState();
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels ==
+          _scrollController.position.maxScrollExtent) {
+        if(allLoaded) {
+          _scrollController.dispose();
+        } else {
+          _getRepos();
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Widget _buildProgressIndicator() {
+    return new Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: new Center(
+        child: new Opacity(
+          opacity: isLoading ? 1.0 : 00,
+          child: new CircularProgressIndicator(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildList() {
+    return ListView.builder(
+      //+1 for progressbar
+      itemCount: allLoaded ? repos.length : repos.length + 1,
+      itemBuilder: (BuildContext context, int index) {
+        if (index == repos.length && !allLoaded) {
+          return _buildProgressIndicator();
+        } else {
+          return Card(
+              child: ListTile(
+            title: Text((repos[index].name)),
+            onTap: () {
+              Toast.show(repos[index].fullName, context,
+                  duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
+            },
+          ));
+        }
+      },
+      controller: _scrollController,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
         appBar: AppBar(
           // Here we take the value from the MyHomePage object that was created by
@@ -87,22 +128,8 @@ class _MyHomePageState extends State<MyHomePage> {
           title: Text(widget.title),
         ),
         body: Container(
-            child: FutureBuilder(
-                future: _getRepos(),
-                builder:
-                    (BuildContext context, AsyncSnapshot<List<Repo>> snapshot) {
-                  if (snapshot.data == null) {
-                    return Container(
-                        child: Center(child: CircularProgressIndicator()));
-                  } else {
-                    return ListView.builder(
-                        itemCount: snapshot.data.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          return ListTile(
-                            title: Text(snapshot.data[index].name),
-                          );
-                        });
-                  }
-                })));
+          child: _buildList(),
+        ),
+        resizeToAvoidBottomPadding: false);
   }
 }
