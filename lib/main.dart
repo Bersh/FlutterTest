@@ -38,6 +38,8 @@ class _MyHomePageState extends State<MyHomePage> {
   final int perPage = 10;
   List<Repo> repos = [];
   ScrollController _scrollController = new ScrollController();
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+      new GlobalKey<RefreshIndicatorState>();
 
   void _getRepos() async {
     if (isLoading) {
@@ -70,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {
-        if(allLoaded) {
+        if (allLoaded) {
           _scrollController.dispose();
         } else {
           _getRepos();
@@ -97,26 +99,39 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  Future<void> _refresh() async {
+    setState(() {
+      repos.clear();
+      allLoaded = false;
+      currentPage = 1;
+    });
+    _getRepos();
+    return null;
+  }
+
   Widget _buildList() {
-    return ListView.builder(
-      //+1 for progressbar
-      itemCount: allLoaded ? repos.length : repos.length + 1,
-      itemBuilder: (BuildContext context, int index) {
-        if (index == repos.length && !allLoaded) {
-          return _buildProgressIndicator();
-        } else {
-          return Card(
-              child: ListTile(
-            title: Text((repos[index].name)),
-            onTap: () {
-              Toast.show(repos[index].fullName, context,
-                  duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
-            },
-          ));
-        }
-      },
-      controller: _scrollController,
-    );
+    return RefreshIndicator(
+        key: _refreshIndicatorKey,
+        onRefresh: _refresh,
+        child: ListView.builder(
+          //+1 for progressbar
+          itemCount: allLoaded ? repos.length : repos.length + 1,
+          itemBuilder: (BuildContext context, int index) {
+            if (index == repos.length && !allLoaded) {
+              return _buildProgressIndicator();
+            } else {
+              return Card(
+                  child: ListTile(
+                title: Text((repos[index].name)),
+                onTap: () {
+                  Toast.show(repos[index].fullName, context,
+                      duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
+                },
+              ));
+            }
+          },
+          controller: _scrollController,
+        ));
   }
 
   @override
