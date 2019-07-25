@@ -1,12 +1,12 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_app/model/repo.dart';
 import 'package:flutter_app/repo/repository_service_repos.dart';
 import 'package:flutter_app/shared_prefs_manager.dart';
 import 'package:http/http.dart' as http;
 import 'package:toast/toast.dart';
-
-import 'package:flutter_app/model/repo.dart';
-import 'dart:async';
-import 'dart:convert';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
@@ -24,7 +24,6 @@ class _MyHomePageState extends State<MyHomePage> {
   bool dbDataLoaded = false;
   final int perPage = 10;
   List<Repo> repos = [];
-  ScrollController _scrollController = new ScrollController();
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       new GlobalKey<RefreshIndicatorState>();
   SharedPrefsManager _sharedPrefsManager = SharedPrefsManager();
@@ -98,21 +97,10 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     _getRepos();
     super.initState();
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels ==
-          _scrollController.position.maxScrollExtent) {
-        if (allLoaded) {
-          _scrollController.dispose();
-        } else {
-          _getRepos();
-        }
-      }
-    });
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
     super.dispose();
   }
 
@@ -140,29 +128,41 @@ class _MyHomePageState extends State<MyHomePage> {
     return null;
   }
 
+  bool _handleScrollPosition(ScrollNotification notification) {
+    if (notification.metrics.pixels == notification.metrics.maxScrollExtent
+        && !allLoaded) {
+      _getRepos();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   Widget _buildList() {
     return RefreshIndicator(
         key: _refreshIndicatorKey,
         onRefresh: _refresh,
-        child: ListView.builder(
-          //+1 for progressbar
-          itemCount: allLoaded ? repos.length : repos.length + 1,
-          itemBuilder: (BuildContext context, int index) {
-            if (index == repos.length && !allLoaded) {
-              return _buildProgressIndicator();
-            } else {
-              return Card(
-                  child: ListTile(
-                title: Text((repos[index].name)),
-                onTap: () {
-                  Toast.show(repos[index].fullName, context,
-                      duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
-                },
-              ));
-            }
-          },
-          controller: _scrollController,
-        ));
+        child: NotificationListener(
+            onNotification: _handleScrollPosition,
+            child: ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              //+1 for progressbar
+              itemCount: allLoaded ? repos.length : repos.length + 1,
+              itemBuilder: (BuildContext context, int index) {
+                if (index == repos.length && !allLoaded) {
+                  return _buildProgressIndicator();
+                } else {
+                  return Card(
+                      child: ListTile(
+                    title: Text((repos[index].name)),
+                    onTap: () {
+                      Toast.show(repos[index].fullName, context,
+                          duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
+                    },
+                  ));
+                }
+              },
+            )));
   }
 
   @override
