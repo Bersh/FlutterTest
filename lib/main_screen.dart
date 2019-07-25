@@ -18,50 +18,50 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int currentPage = -1;
-  bool isLoading = false;
-  bool allLoaded = false;
-  bool dbDataLoaded = false;
-  final int perPage = 10;
-  List<Repo> repos = [];
+  int _currentPage = -1;
+  bool _isLoading = false;
+  bool _allLoaded = false;
+  bool _dbDataLoaded = false;
+  int _perPage;
+  List<Repo> _repos = [];
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       new GlobalKey<RefreshIndicatorState>();
   SharedPrefsManager _sharedPrefsManager = SharedPrefsManager();
 
   void _getRepos() async {
-    if (isLoading) {
+    if (_isLoading) {
       return;
     }
     setState(() {
-      isLoading = true;
+      _isLoading = true;
     });
-    if (currentPage < 0) {
-      currentPage = await _sharedPrefsManager.getLastLoadedPage();
+    if (_currentPage < 0) {
+      _currentPage = await _sharedPrefsManager.getLastLoadedPage();
     }
-    allLoaded = await _sharedPrefsManager.getAllLoadedFromNetwork();
-    if (allLoaded) {
+    _allLoaded = await _sharedPrefsManager.getAllLoadedFromNetwork();
+    if (_allLoaded) {
       setState(() {
-        isLoading = false;
+        _isLoading = false;
       });
       return;
     }
 
     var tempList = <Repo>[];
-    if (!dbDataLoaded) {
+    if (!_dbDataLoaded) {
       tempList = await _getFromDb();
-      dbDataLoaded = true;
+      _dbDataLoaded = true;
     }
     if (tempList.isEmpty) {
       tempList = await _getFromNetwork();
     }
 
     await _sharedPrefsManager.setAllLoadedFromNetwork(tempList.isEmpty);
-    await _sharedPrefsManager.setLastLoadedPage(currentPage);
+    await _sharedPrefsManager.setLastLoadedPage(_currentPage);
     setState(() {
-      allLoaded = tempList.isEmpty;
-      currentPage++;
-      isLoading = false;
-      repos.addAll(tempList);
+      _allLoaded = tempList.isEmpty;
+      _currentPage++;
+      _isLoading = false;
+      _repos.addAll(tempList);
     });
   }
 
@@ -75,7 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<List<Repo>> _getFromNetwork() async {
     var completer = new Completer<List<Repo>>();
     var data = await http.get(
-        "https://api.github.com/users/JakeWharton/repos?page=$currentPage&per_page=$perPage");
+        "https://api.github.com/users/JakeWharton/repos?page=$_currentPage&per_page=$_perPage");
     var jsonData = json.decode(data.body);
     List<Repo> tempList = [];
     for (var repo in jsonData) {
@@ -109,7 +109,7 @@ class _MyHomePageState extends State<MyHomePage> {
       padding: const EdgeInsets.all(8.0),
       child: new Center(
         child: new Opacity(
-          opacity: isLoading ? 1.0 : 00,
+          opacity: _isLoading ? 1.0 : 00,
           child: new CircularProgressIndicator(),
         ),
       ),
@@ -120,9 +120,9 @@ class _MyHomePageState extends State<MyHomePage> {
     RepositoryServiceRepos.deleteAll();
     await _sharedPrefsManager.clear();
     setState(() {
-      repos.clear();
-      allLoaded = false;
-      currentPage = 1;
+      _repos.clear();
+      _allLoaded = false;
+      _currentPage = 1;
     });
     _getRepos();
     return null;
@@ -130,7 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   bool _handleScrollPosition(ScrollNotification notification) {
     if (notification.metrics.pixels == notification.metrics.maxScrollExtent
-        && !allLoaded) {
+        && !_allLoaded) {
       _getRepos();
       return true;
     } else {
@@ -147,16 +147,16 @@ class _MyHomePageState extends State<MyHomePage> {
             child: ListView.builder(
               physics: const AlwaysScrollableScrollPhysics(),
               //+1 for progressbar
-              itemCount: allLoaded ? repos.length : repos.length + 1,
+              itemCount: _allLoaded ? _repos.length : _repos.length + 1,
               itemBuilder: (BuildContext context, int index) {
-                if (index == repos.length && !allLoaded) {
+                if (index == _repos.length && !_allLoaded) {
                   return _buildProgressIndicator();
                 } else {
                   return Card(
                       child: ListTile(
-                    title: Text((repos[index].name)),
+                    title: Text((_repos[index].name)),
                     onTap: () {
-                      Toast.show(repos[index].fullName, context,
+                      Toast.show(_repos[index].fullName, context,
                           duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
                     },
                   ));
@@ -167,6 +167,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    _perPage = _perPage ??= (MediaQuery.of(context).size.height / 60).round();
     return Scaffold(
         appBar: AppBar(
           // Here we take the value from the MyHomePage object that was created by
