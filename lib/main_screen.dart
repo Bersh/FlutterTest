@@ -6,7 +6,8 @@ import 'package:flutter_app/model/repo.dart';
 import 'package:flutter_app/repo/repository_service_repos.dart';
 import 'package:flutter_app/shared_prefs_manager.dart';
 import 'package:http/http.dart' as http;
-import 'package:toast/toast.dart';
+
+import 'detail_screen.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
@@ -129,8 +130,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   bool _handleScrollPosition(ScrollNotification notification) {
-    if (notification.metrics.pixels == notification.metrics.maxScrollExtent
-        && !_allLoaded) {
+    if (notification.metrics.pixels == notification.metrics.maxScrollExtent &&
+        !_allLoaded) {
       _getRepos();
       return true;
     } else {
@@ -156,8 +157,11 @@ class _MyHomePageState extends State<MyHomePage> {
                       child: ListTile(
                     title: Text((_repos[index].name)),
                     onTap: () {
-                      Toast.show(_repos[index].fullName, context,
-                          duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => DetailScreen(_repos[index])),
+                      );
                     },
                   ));
                 }
