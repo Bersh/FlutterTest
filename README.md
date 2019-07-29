@@ -5,4 +5,4 @@ stored locally with SQLite. User can force the app to reload all data using pull
 
 Here's a demo video:
 
-![Demo Video](demo/demo_video.webm)
+![Demo Video](demo/demo.gif)
