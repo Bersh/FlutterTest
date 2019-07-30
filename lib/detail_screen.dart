@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'app_localizations.dart';
 import 'model/repo.dart';
 
 class DetailScreen extends StatelessWidget {
@@ -38,7 +39,7 @@ class DetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text("Repo details"),
+          title: Text(AppLocalizations.of(context).translate("details_screen_title")),
         ),
         body: Container(
             child: Padding(
@@ -47,9 +48,9 @@ class DetailScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _createDataRow("ID", _repo.id.toString()),
-                _createDataRow("Name", _repo.name),
-                _createDataRow("Full name", _repo.fullName)
+                _createDataRow(AppLocalizations.of(context).translate("id"), _repo.id.toString()),
+                _createDataRow(AppLocalizations.of(context).translate("name"), _repo.name),
+                _createDataRow(AppLocalizations.of(context).translate("full_name"), _repo.fullName)
               ]),
         )));
   }

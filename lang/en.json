@@ -1,0 +1,8 @@
+{
+  "app_title": "Flutter Demo",
+  "main_screen_title": "Repositories List",
+  "details_screen_title": "Repo details",
+  "id": "ID",
+  "name": "Name",
+  "full_name": "Full Name"
+}

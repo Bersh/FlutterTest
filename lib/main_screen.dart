@@ -7,18 +7,18 @@ import 'package:flutter_app/repo/repository_service_repos.dart';
 import 'package:flutter_app/shared_prefs_manager.dart';
 import 'package:http/http.dart' as http;
 
+import 'app_localizations.dart';
 import 'detail_screen.dart';
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
+  MyHomePage({Key key}) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  String title = "";
   int _currentPage = -1;
   bool _isLoading = false;
   bool _allLoaded = false;
@@ -176,7 +176,7 @@ class _MyHomePageState extends State<MyHomePage> {
         appBar: AppBar(
           // Here we take the value from the MyHomePage object that was created by
           // the App.build method, and use it to set our appbar title.
-          title: Text(widget.title),
+          title: Text(AppLocalizations.of(context).translate("main_screen_title")),
         ),
         body: Container(
           child: _buildList(),

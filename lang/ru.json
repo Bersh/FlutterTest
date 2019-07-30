@@ -1,0 +1,8 @@
+{
+  "app_title": "Flutter Демо",
+  "main_screen_title": "Список репозиториев",
+  "details_screen_title": "Информация о репозитории",
+  "id": "ID",
+  "name": "Имя",
+  "full_name": "Полное имя"
+}

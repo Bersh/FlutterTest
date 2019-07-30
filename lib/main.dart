@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/repo/db_creator.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'app_localizations.dart';
 import 'main_screen.dart';
 
 void main() async {
@@ -13,11 +15,29 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      localizationsDelegates: [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate
+      ],
+      supportedLocales: [
+        Locale("en", "US"),
+        Locale("ru", "RU"),
+        Locale("uk", "UA")
+      ],
+      localeResolutionCallback: (locale, supportedLocales) {
+        for (var supportedLocale in supportedLocales) {
+          if (supportedLocale.languageCode == locale.languageCode &&
+              supportedLocale.countryCode == locale.countryCode) {
+            return supportedLocale;
+          }
+        }
+        return supportedLocales.first;
+      },
+      home: MyHomePage(),
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Repositories List'),
     );
   }
 }
