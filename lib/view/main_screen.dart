@@ -7,8 +7,8 @@ import 'package:flutter_app/repo/repository_service_repos.dart';
 import 'package:flutter_app/shared_prefs_manager.dart';
 import 'package:http/http.dart' as http;
 
-import 'app_localizations.dart';
-import 'detail_screen.dart';
+import '../app_localizations.dart';
+import 'package:flutter_app/view/detail_screen.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key}) : super(key: key);

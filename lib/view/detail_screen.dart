@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/model/repo.dart';
 
-import 'app_localizations.dart';
-import 'model/repo.dart';
+import '../app_localizations.dart';
+
 
 class DetailScreen extends StatelessWidget {
   final Repo _repo;

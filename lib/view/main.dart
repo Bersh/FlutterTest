@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/repo/db_creator.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-import 'app_localizations.dart';
-import 'main_screen.dart';
+import '../app_localizations.dart';
+import 'package:flutter_app/view/main_screen.dart';
 
 void main() async {
   await DatabaseCreator().initDatabase();
