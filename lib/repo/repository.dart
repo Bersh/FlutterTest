@@ -9,7 +9,7 @@ import 'package:http/http.dart' as http;
 import '../shared_prefs_manager.dart';
 
 class Repository {
-  int _currentPage = 0;
+  int _currentPage = 1;
   SharedPrefsManager _sharedPrefsManager = SharedPrefsManager();
   bool _allLoaded = false;
   bool _dbDataLoaded = false;

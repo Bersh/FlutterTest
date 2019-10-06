@@ -1,11 +1,6 @@
-import 'dart:async';
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_app/bloc/repos/repos_bloc.dart';
 import 'package:flutter_app/model/repo.dart';
-import 'package:flutter_app/repo/repository_service_repos.dart';
-import 'package:flutter_app/shared_prefs_manager.dart';
 import 'package:flutter_app/view/detail_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -21,18 +16,17 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   String title = "";
   int _currentPage = -1;
-  bool _isLoading = false;
-  bool _allLoaded = false;
-  bool _dbDataLoaded = false;
   int _perPage;
   List<Repo> _repos = [];
+  ReposBloc bloc = ReposBloc();
+
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       new GlobalKey<RefreshIndicatorState>();
 
   @override
   void initState() {
     super.initState();
-    BlocProvider.of<ReposBloc>(context).dispatch(LoadReposEvent());
+    bloc.dispatch(LoadReposEvent());
   }
 
   @override
@@ -40,63 +34,89 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  Widget _buildProgressIndicator() {
+  Widget _buildPageProgressIndicator() {
+    return new Center(
+      child: new CircularProgressIndicator(),
+    );
+  }
+
+  //Build progress indicator for list item
+  Widget _buildItemProgressIndicator() {
     return new Padding(
       padding: const EdgeInsets.all(8.0),
       child: new Center(
-        child: new Opacity(
-          opacity: _isLoading ? 1.0 : 00,
-          child: new CircularProgressIndicator(),
-        ),
+        child: new CircularProgressIndicator(),
       ),
     );
   }
 
-  void _refresh() async {
-    BlocProvider.of<ReposBloc>(context).dispatch(ReloadReposEvent());
+  Future<void> _refresh() async {
+    bloc.dispatch(ReloadReposEvent());
+    return null;
   }
 
   bool _handleScrollPosition(ScrollNotification notification) {
-    if (notification.metrics.pixels == notification.metrics.maxScrollExtent &&
-        !_allLoaded) {
-      _getRepos();
+    if (notification.metrics.pixels == notification.metrics.maxScrollExtent) {
+      bloc.dispatch(LoadReposEvent());
       return true;
     } else {
       return false;
     }
   }
 
-  Widget _buildList() {
+  Widget _buildPage(BuildContext context) {
+    return BlocBuilder(
+      bloc: bloc,
+      builder: (BuildContext context, ReposState state) {
+        // Changing the UI based on the current state
+        if (state is InitialReposState || state is LoadingReposState) {
+          if (_repos.isEmpty) {
+            return _buildPageProgressIndicator();
+          } else {
+            return _buildList(true);
+          }
+        } else if (state is LoadedReposState) {
+          _repos.addAll(state.repos);
+        }
+
+        return _buildList(false);
+      },
+    );
+  }
+
+  Widget _buildList(bool isLoadingNextPage) {
     return RefreshIndicator(
         key: _refreshIndicatorKey,
         onRefresh: _refresh,
-        child: BlocProvider(
-            builder: (BuildContext context) => ReposBloc(),
-            child: NotificationListener(
-                onNotification: _handleScrollPosition,
-                child: ListView.builder(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  //+1 for progressbar
-                  itemCount: _allLoaded ? _repos.length : _repos.length + 1,
-                  itemBuilder: (BuildContext context, int index) {
-                    if (index == _repos.length && !_allLoaded) {
-                      return _buildProgressIndicator();
-                    } else {
-                      return Card(
-                          child: ListTile(
-                        title: Text((_repos[index].name)),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    DetailScreen(_repos[index])),
-                          );
-                        },
-                      ));
-                    }
-                  },
-                ))));
+        child: NotificationListener(
+            onNotification: _handleScrollPosition,
+            child: ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              //+1 for progressbar
+              itemCount: isLoadingNextPage ? _repos.length + 1 : _repos.length,
+              itemBuilder: (BuildContext context, int index) {
+                return _buildListItem(context, index, isLoadingNextPage);
+              },
+            )));
+  }
+
+  Widget _buildListItem(
+      BuildContext context, int index, bool isLoadingNextPage) {
+    if (index == _repos.length && isLoadingNextPage) {
+      return _buildItemProgressIndicator();
+    } else {
+      return Card(
+          child: ListTile(
+        title: Text((_repos[index].name)),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => DetailScreen(_repos[index])),
+          );
+        },
+      ));
+    }
   }
 
   @override
@@ -109,9 +129,7 @@ class _MyHomePageState extends State<MyHomePage> {
           title:
               Text(AppLocalizations.of(context).translate("main_screen_title")),
         ),
-        body: Container(
-          child: _buildList(),
-        ),
+        body: Container(child: _buildPage(context)),
         resizeToAvoidBottomPadding: false);
   }
 }
