@@ -9,27 +9,30 @@ import 'package:http/http.dart' as http;
 import '../shared_prefs_manager.dart';
 
 class Repository {
-  int _currentPage = 1;
+  int _currentPage = -1;
   SharedPrefsManager _sharedPrefsManager = SharedPrefsManager();
   bool _allLoaded = false;
   bool _dbDataLoaded = false;
-  int _perPage = 60; //TODO calculate this  _perPage = _perPage ??= (MediaQuery.of(context).size.height / 60).round();
+  int _perPage = 20; //TODO calculate this  _perPage = _perPage ??= (MediaQuery.of(context).size.height / 60).round();
 
   Future<List<Repo>> getRepos() async {
     if (_currentPage < 0) {
       _currentPage = await _sharedPrefsManager.getLastLoadedPage();
     }
-    _allLoaded = await _sharedPrefsManager.getAllLoadedFromNetwork();
-
-    var tempList = <Repo>[];
-    if (_allLoaded) {
-      return tempList;
+    if(!_allLoaded) {
+      _allLoaded = await _sharedPrefsManager.getAllLoadedFromNetwork();
     }
 
+    var tempList = <Repo>[];
     if (!_dbDataLoaded) {
       tempList = await _getFromDb();
       _dbDataLoaded = true;
     }
+
+    if (_allLoaded) {
+      return tempList;
+    }
+
     if (tempList.isEmpty) {
       tempList = await _getFromNetwork();
     }
@@ -52,6 +55,8 @@ class Repository {
     var completer = new Completer<List<Repo>>();
     var data = await http.get(
         "https://api.github.com/users/JakeWharton/repos?page=$_currentPage&per_page=$_perPage");
+    print(data.statusCode);
+    print(data.body);
     var jsonData = json.decode(data.body);
     List<Repo> tempList = [];
     for (var repo in jsonData) {

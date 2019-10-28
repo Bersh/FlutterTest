@@ -26,7 +26,7 @@ class RepositoryServiceRepos {
   }
 
   static Future<void> addRepo(Repo repo) async {
-    final sql = '''INSERT INTO ${DatabaseCreator.reposTable}
+    final sql = '''INSERT OR REPLACE INTO ${DatabaseCreator.reposTable}
     (
       ${DatabaseCreator.id},
       ${DatabaseCreator.name},

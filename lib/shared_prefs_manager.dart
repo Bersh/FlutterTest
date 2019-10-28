@@ -26,7 +26,7 @@ class SharedPrefsManager {
 
   Future<void> setAllLoadedFromNetwork(bool isAllLoaded) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(KEY_LAST_LOADED_PAGE, isAllLoaded);
+    await prefs.setBool(KEY_ALL_LOADED_FROM_NETWORK, isAllLoaded);
   }
 
   Future<bool> getAllLoadedFromNetwork() async {

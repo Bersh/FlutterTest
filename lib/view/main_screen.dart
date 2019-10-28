@@ -15,7 +15,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String title = "";
-  int _currentPage = -1;
+  bool _loading = false;
+  bool _allLoaded = false;
   int _perPage;
   List<Repo> _repos = [];
   ReposBloc bloc = ReposBloc();
@@ -51,12 +52,14 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _refresh() async {
+    _allLoaded = false;
     bloc.dispatch(ReloadReposEvent());
     return null;
   }
 
   bool _handleScrollPosition(ScrollNotification notification) {
-    if (notification.metrics.pixels == notification.metrics.maxScrollExtent) {
+    if (notification.metrics.pixels == notification.metrics.maxScrollExtent && !_loading && !_allLoaded) {
+      _loading = true;
       bloc.dispatch(LoadReposEvent());
       return true;
     } else {
@@ -77,8 +80,11 @@ class _MyHomePageState extends State<MyHomePage> {
           }
         } else if (state is LoadedReposState) {
           _repos.addAll(state.repos);
+        } else if (state is AllReposLoadedState) {
+          _allLoaded = true;
         }
 
+        _loading = false;
         return _buildList(false);
       },
     );
