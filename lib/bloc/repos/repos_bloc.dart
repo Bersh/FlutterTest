@@ -12,6 +12,11 @@ part 'repos_state.dart';
 class ReposBloc extends Bloc<ReposEvent, ReposState> {
   Repository _repository = Repository();
   bool _isLoading = false;
+  int itemsPerPage;
+
+  ReposBloc({this.itemsPerPage = 20}) {
+    _repository = Repository(itemsPerPage: itemsPerPage);
+  }
 
   @override
   ReposState get initialState => InitialReposState();

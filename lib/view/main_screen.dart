@@ -19,7 +19,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _allLoaded = false;
   int _perPage;
   List<Repo> _repos = [];
-  ReposBloc bloc = ReposBloc();
+  ReposBloc _bloc = ReposBloc();
 
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       new GlobalKey<RefreshIndicatorState>();
@@ -27,7 +27,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    bloc.dispatch(LoadReposEvent());
+    _bloc.dispatch(LoadReposEvent());
   }
 
   @override
@@ -53,14 +53,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _refresh() async {
     _allLoaded = false;
-    bloc.dispatch(ReloadReposEvent());
+    _bloc.dispatch(ReloadReposEvent());
     return null;
   }
 
   bool _handleScrollPosition(ScrollNotification notification) {
     if (notification.metrics.pixels == notification.metrics.maxScrollExtent && !_loading && !_allLoaded) {
       _loading = true;
-      bloc.dispatch(LoadReposEvent());
+      _bloc.dispatch(LoadReposEvent());
       return true;
     } else {
       return false;
@@ -69,7 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _buildPage(BuildContext context) {
     return BlocBuilder(
-      bloc: bloc,
+      bloc: _bloc,
       builder: (BuildContext context, ReposState state) {
         // Changing the UI based on the current state
         if (state is InitialReposState || state is LoadingReposState) {

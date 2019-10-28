@@ -13,7 +13,8 @@ class Repository {
   SharedPrefsManager _sharedPrefsManager = SharedPrefsManager();
   bool _allLoaded = false;
   bool _dbDataLoaded = false;
-  int _perPage = 20; //TODO calculate this  _perPage = _perPage ??= (MediaQuery.of(context).size.height / 60).round();
+  int itemsPerPage; //TODO calculate this  _perPage = _perPage ??= (MediaQuery.of(context).size.height / 60).round();
+  Repository({this.itemsPerPage = 20});
 
   Future<List<Repo>> getRepos() async {
     if (_currentPage < 0) {
@@ -54,7 +55,7 @@ class Repository {
   Future<List<Repo>> _getFromNetwork() async {
     var completer = new Completer<List<Repo>>();
     var data = await http.get(
-        "https://api.github.com/users/JakeWharton/repos?page=$_currentPage&per_page=$_perPage");
+        "https://api.github.com/users/JakeWharton/repos?page=$_currentPage&per_page=$itemsPerPage");
     print(data.statusCode);
     print(data.body);
     var jsonData = json.decode(data.body);
