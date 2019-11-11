@@ -59,7 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   bool _handleScrollPosition(ScrollNotification notification) {
-    if (notification.metrics.pixels == notification.metrics.maxScrollExtent &&
+    if (notification.metrics.pixels >= notification.metrics.maxScrollExtent - 100 &&
         !_loading &&
         !_allLoaded) {
       _loading = true;
