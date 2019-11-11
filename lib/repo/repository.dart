@@ -13,6 +13,7 @@ class Repository {
   SharedPrefsManager _sharedPrefsManager = SharedPrefsManager();
   bool _allLoaded = false;
   bool _dbDataLoaded = false;
+  List<Repo> _repos = [];
   int itemsPerPage; //TODO calculate this  _perPage = _perPage ??= (MediaQuery.of(context).size.height / 60).round();
   Repository({this.itemsPerPage = 20});
 
@@ -31,18 +32,20 @@ class Repository {
     }
 
     if (_allLoaded) {
-      return tempList;
+      _repos.addAll(tempList);
+      return _repos;
     }
 
     if (tempList.isEmpty) {
       tempList = await _getFromNetwork();
+      _repos.addAll(tempList);
     }
 
     await _sharedPrefsManager.setAllLoadedFromNetwork(tempList.isEmpty);
     await _sharedPrefsManager.setLastLoadedPage(_currentPage);
     _allLoaded = tempList.isEmpty;
     _currentPage++;
-    return tempList;
+    return _repos;
   }
 
   Future<List<Repo>> _getFromDb() async {

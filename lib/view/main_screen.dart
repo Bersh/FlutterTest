@@ -59,7 +59,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   bool _handleScrollPosition(ScrollNotification notification) {
-    if (notification.metrics.pixels == notification.metrics.maxScrollExtent && !_loading && !_allLoaded) {
+    if (notification.metrics.pixels == notification.metrics.maxScrollExtent &&
+        !_loading &&
+        !_allLoaded) {
       _loading = true;
       _bloc.dispatch(LoadReposEvent());
       return true;
@@ -73,14 +75,12 @@ class _MyHomePageState extends State<MyHomePage> {
       bloc: _bloc,
       builder: (BuildContext context, ReposState state) {
         // Changing the UI based on the current state
-        if (state is InitialReposState || state is LoadingReposState) {
-          if (_repos.isEmpty) {
-            return _buildPageProgressIndicator();
-          } else {
-            return _buildList(true);
-          }
+        if (state is InitialReposState) {
+          return _buildPageProgressIndicator();
+        } else if (state is LoadingReposState) {
+          return _buildList(true);
         } else if (state is LoadedReposState) {
-          _repos.addAll(state.repos);
+          _repos = state.repos;
         } else if (state is AllReposLoadedState) {
           _allLoaded = true;
         }
